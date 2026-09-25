@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}จัดการพนักงาน{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">จัดการพนักงาน</h1>
+
+<form method="POST" class="bg-white p-6 rounded-lg shadow-sm grid grid-cols-2 gap-4 mb-8 max-w-2xl">
+  <div>
+    <label class="block text-sm text-slate-600 mb-1">ชื่อ-นามสกุล *</label>
+    <input type="text" name="full_name" required class="w-full border rounded px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm text-slate-600 mb-1">ชื่อผู้ใช้ (username) *</label>
+    <input type="text" name="username" required class="w-full border rounded px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm text-slate-600 mb-1">รหัสผ่าน *</label>
+    <input type="password" name="password" required class="w-full border rounded px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm text-slate-600 mb-1">แผนก</label>
+    <select name="department_id" class="w-full border rounded px-3 py-2">
+      <option value="">-- ไม่มีแผนก --</option>
+      {% for d in departments %}
+      <option value="{{ d.id }}">{{ d.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-span-2 flex items-center gap-2">
+    <input type="checkbox" name="is_admin" id="is_admin">
+    <label for="is_admin" class="text-sm text-slate-600">เป็นผู้ดูแลระบบ (Admin)</label>
+  </div>
+  <div class="col-span-2">
+    <button class="bg-slate-900 text-white px-5 py-2 rounded hover:bg-slate-800">เพิ่มพนักงาน</button>
+  </div>
+</form>
+
+<div class="bg-white rounded-lg shadow-sm divide-y">
+  {% for e in employees %}
+  <div class="px-4 py-3 flex justify-between items-center text-sm">
+    <span>{{ e.full_name }} ({{ e.username }}){% if e.is_admin %} · Admin{% endif %}</span>
+    <span class="text-slate-400">{{ e.department.name if e.department else "ไม่มีแผนก" }}</span>
+  </div>
+  {% else %}
+  <div class="px-4 py-3 text-slate-400 text-sm">ยังไม่มีพนักงาน</div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}จัดการแผนก{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">จัดการแผนก</h1>
+
+<form method="POST" class="bg-white p-4 rounded-lg shadow-sm flex gap-3 mb-6 max-w-md">
+  <input type="text" name="name" placeholder="ชื่อแผนกใหม่ เช่น การตลาด" required
+         class="flex-1 border rounded px-3 py-2">
+  <button class="bg-slate-900 text-white px-4 py-2 rounded hover:bg-slate-800">เพิ่มแผนก</button>
+</form>
+
+<div class="bg-white rounded-lg shadow-sm divide-y">
+  {% for d in departments %}
+  <div class="px-4 py-3 flex justify-between items-center">
+    <span>{{ d.name }}</span>
+    <span class="text-sm text-slate-400">{{ d.employees|length }} คน</span>
+  </div>
+  {% else %}
+  <div class="px-4 py-3 text-slate-400 text-sm">ยังไม่มีแผนก</div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}แดชบอร์ด{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">แดชบอร์ดของฉัน</h1>
+
+<section class="mb-8">
+  <h2 class="text-lg font-medium mb-3">📌 งานที่มอบหมายให้ฉันโดยตรง</h2>
+  {% if my_direct_tasks %}
+  <div class="space-y-3">
+    {% for t in my_direct_tasks %}
+    <div class="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
+      <div>
+        <p class="font-medium">{{ t.title }}</p>
+        <p class="text-sm text-slate-500">
+          กำหนดส่ง: {{ t.due_date or "-" }} {{ t.due_time or "" }}
+          · โดย {{ t.creator.full_name }}
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <form method="POST" action="{{ url_for('update_status', task_id=t.id) }}">
+          <select name="status" onchange="this.form.submit()" class="border rounded text-sm px-2 py-1">
+            <option value="pending" {{ "selected" if t.status == "pending" }}>รอดำเนินการ</option>
+            <option value="in_progress" {{ "selected" if t.status == "in_progress" }}>กำลังทำ</option>
+            <option value="done" {{ "selected" if t.status == "done" }}>เสร็จสิ้น</option>
+          </select>
+        </form>
+        <a href="{{ url_for('task_ics', task_id=t.id) }}" class="text-sm text-blue-600 hover:underline">+ ปฏิทิน</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-slate-400 text-sm">ไม่มีงานที่มอบหมายให้คุณโดยตรง</p>
+  {% endif %}
+</section>
+
+<section class="mb-8">
+  <h2 class="text-lg font-medium mb-3">🏢 งานกองกลางของแผนก (กดรับได้)</h2>
+  {% if dept_open_tasks %}
+  <div class="space-y-3">
+    {% for t in dept_open_tasks %}
+    <div class="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
+      <div>
+        <p class="font-medium">{{ t.title }}</p>
+        <p class="text-sm text-slate-500">
+          กำหนดส่ง: {{ t.due_date or "-" }} {{ t.due_time or "" }}
+          · โดย {{ t.creator.full_name }}
+        </p>
+      </div>
+      <form method="POST" action="{{ url_for('accept_task', task_id=t.id) }}">
+        <button class="bg-emerald-600 text-white text-sm px-3 py-1.5 rounded hover:bg-emerald-700">
+          รับงานนี้
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-slate-400 text-sm">ไม่มีงานกองกลางที่รอรับในตอนนี้</p>
+  {% endif %}
+</section>
+
+<section class="mb-8">
+  <h2 class="text-lg font-medium mb-3">✅ งานที่ฉันรับไปทำ (จากแผนก)</h2>
+  {% if my_accepted %}
+  <div class="space-y-3">
+    {% for a in my_accepted %}
+    <div class="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
+      <div>
+        <p class="font-medium">{{ a.task.title }}</p>
+        <p class="text-sm text-slate-500">
+          กำหนดส่ง: {{ a.task.due_date or "-" }} {{ a.task.due_time or "" }}
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <form method="POST" action="{{ url_for('update_status', task_id=a.task.id) }}">
+          <select name="status" onchange="this.form.submit()" class="border rounded text-sm px-2 py-1">
+            <option value="in_progress" {{ "selected" if a.status == "in_progress" }}>กำลังทำ</option>
+            <option value="done" {{ "selected" if a.status == "done" }}>เสร็จสิ้น</option>
+          </select>
+        </form>
+        <a href="{{ url_for('task_ics', task_id=a.task.id) }}" class="text-sm text-blue-600 hover:underline">+ ปฏิทิน</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-slate-400 text-sm">คุณยังไม่ได้รับงานจากกองกลางแผนก</p>
+  {% endif %}
+</section>
+
+<section>
+  <h2 class="text-lg font-medium mb-3">🗂️ งานที่ฉันสร้าง</h2>
+  {% if created_by_me %}
+  <div class="space-y-3">
+    {% for t in created_by_me %}
+    <div class="bg-white p-4 rounded-lg shadow-sm">
+      <p class="font-medium">{{ t.title }}</p>
+      <p class="text-sm text-slate-500">
+        มอบหมายให้:
+        {% if t.assignment_type == "individual" %}
+          {{ t.assignee.full_name if t.assignee else "-" }}
+        {% else %}
+          แผนก {{ t.assigned_department.name }} ({{ t.acceptances|length }} คนรับแล้ว)
+        {% endif %}
+      </p>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-slate-400 text-sm">คุณยังไม่ได้สร้างงาน</p>
+  {% endif %}
+</section>
+{% endblock %}

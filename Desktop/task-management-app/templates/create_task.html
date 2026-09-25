@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}สร้างงานใหม่{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">สร้างงานใหม่</h1>
+
+<form method="POST" class="bg-white p-6 rounded-lg shadow-sm space-y-5 max-w-2xl">
+  <div>
+    <label class="block text-sm text-slate-600 mb-1">ชื่องาน *</label>
+    <input type="text" name="title" required class="w-full border rounded px-3 py-2">
+  </div>
+
+  <div>
+    <label class="block text-sm text-slate-600 mb-1">รายละเอียด</label>
+    <textarea name="description" rows="3" class="w-full border rounded px-3 py-2"></textarea>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm text-slate-600 mb-1">วันที่ครบกำหนด</label>
+      <input type="date" name="due_date" class="w-full border rounded px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm text-slate-600 mb-1">เวลา</label>
+      <input type="time" name="due_time" class="w-full border rounded px-3 py-2">
+    </div>
+  </div>
+
+  <div>
+    <label class="block text-sm text-slate-600 mb-1">อื่นๆ</label>
+    <textarea name="notes" rows="2" class="w-full border rounded px-3 py-2"></textarea>
+  </div>
+
+  <div>
+    <label class="block text-sm text-slate-600 mb-2">มอบหมายงานแบบ *</label>
+    <div class="flex gap-6 mb-3">
+      <label class="flex items-center gap-2 text-sm">
+        <input type="radio" name="assign_type" value="individual" onclick="toggleAssign('individual')" checked>
+        รายบุคคล
+      </label>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="radio" name="assign_type" value="department" onclick="toggleAssign('department')">
+        ทั้งแผนก
+      </label>
+    </div>
+
+    <div id="individual-block">
+      <select name="assigned_employee_id" class="w-full border rounded px-3 py-2">
+        <option value="">-- เลือกพนักงาน --</option>
+        {% for e in employees %}
+        <option value="{{ e.id }}">{{ e.full_name }}{% if e.department %} ({{ e.department.name }}){% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div id="department-block" class="hidden">
+      <select name="assigned_department_id" class="w-full border rounded px-3 py-2">
+        <option value="">-- เลือกแผนก --</option>
+        {% for d in departments %}
+        <option value="{{ d.id }}">{{ d.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <button type="submit" class="bg-slate-900 text-white px-5 py-2 rounded hover:bg-slate-800">
+    สร้างงาน
+  </button>
+</form>
+
+<script>
+  function toggleAssign(type) {
+    document.getElementById('individual-block').classList.toggle('hidden', type !== 'individual');
+    document.getElementById('department-block').classList.toggle('hidden', type !== 'department');
+  }
+</script>
+{% endblock %}
