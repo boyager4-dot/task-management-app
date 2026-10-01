@@ -17,7 +17,6 @@ def create_app():
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
     
-    # ตรวจสอบและสร้างโฟลเดอร์ instance อัตโนมัติ ป้องกัน Error เปิดไฟล์ฐานข้อมูลไม่ได้บน Render
     instance_dir = os.path.join(BASE_DIR, 'instance')
     if not os.path.exists(instance_dir):
         os.makedirs(instance_dir)
@@ -38,10 +37,8 @@ def create_app():
     def load_user(user_id):
         return db.session.get(Employee, int(user_id))
 
-    # สร้างฐานข้อมูลและบัญชี Admin เริ่มต้นอัตโนมัติ
     with app.app_context():
         db.create_all()
-        # ตรวจสอบว่ามีผู้ใช้อย่างน้อย 1 คนหรือยัง ถ้ายังให้สร้าง Admin เริ่มต้น
         if not Employee.query.first():
             admin_dept = Department.query.filter_by(name="Admin").first()
             if not admin_dept:
@@ -131,7 +128,7 @@ def create_app():
             notes = request.form.get("notes", "").strip()
             due_date_raw = request.form.get("due_date")
             due_time_raw = request.form.get("due_time")
-            assign_type = request.form.get("assign_type")  # "individual" | "department"
+            assign_type = request.form.get("assign_type")
 
             if not title:
                 flash("กรุณากรอกชื่องาน", "error")
@@ -174,7 +171,7 @@ def create_app():
             "create_task.html", employees=employees, departments=departments
         )
 
-    # ---------- Accept a department task ----------
+    # ---------- Accept task ----------
     @app.route("/tasks/<int:task_id>/accept", methods=["POST"])
     @login_required
     def accept_task(task_id):
@@ -266,6 +263,23 @@ def create_app():
         departments = Department.query.order_by(Department.name).all()
         return render_template("admin_departments.html", departments=departments)
 
+    # ---------- Admin: delete department ----------
+    @app.route("/admin/departments/<int:dept_id>/delete", methods=["POST"])
+    @login_required
+    def delete_department(dept_id):
+        if not current_user.is_admin:
+            abort(403)
+        dept = db.session.get(Department, dept_id)
+        if dept:
+            # ป้องกันลบแผนกถ้ายังมีพนักงานอยู่
+            if dept.employees:
+                flash("ไม่สามารถลบแผนกนี้ได้เนื่องจากยังมีพนักงานสังกัดอยู่", "error")
+            else:
+                db.session.delete(dept)
+                db.session.commit()
+                flash("ลบแผนกเรียบร้อยแล้ว", "success")
+        return redirect(url_for("admin_departments"))
+
     # ---------- Admin: employees ----------
     @app.route("/admin/employees", methods=["GET", "POST"])
     @login_required
@@ -301,6 +315,22 @@ def create_app():
         return render_template(
             "admin_employees.html", employees=employees, departments=departments
         )
+
+    # ---------- Admin: delete employee ----------
+    @app.route("/admin/employees/<int:emp_id>/delete", methods=["POST"])
+    @login_required
+    def delete_employee(emp_id):
+        if not current_user.is_admin:
+            abort(403)
+        emp = db.session.get(Employee, emp_id)
+        if emp:
+            if emp.id == current_user.id:
+                flash("ไม่สามารถลบบัญชีของตัวเองขณะใช้งานอยู่ได้", "error")
+            else:
+                db.session.delete(emp)
+                db.session.commit()
+                flash("ลบพนักงานเรียบร้อยแล้ว", "success")
+        return redirect(url_for("admin_employees"))
 
     return app
 
