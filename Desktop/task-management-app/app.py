@@ -16,8 +16,14 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 def create_app():
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+    
+    # ตรวจสอบและสร้างโฟลเดอร์ instance อัตโนมัติ ป้องกัน Error เปิดไฟล์ฐานข้อมูลไม่ได้บน Render
+    instance_dir = os.path.join(BASE_DIR, 'instance')
+    if not os.path.exists(instance_dir):
+        os.makedirs(instance_dir)
+
     app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-        "DATABASE_URL", f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'app.db')}"
+        "DATABASE_URL", f"sqlite:///{os.path.join(instance_dir, 'app.db')}"
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
