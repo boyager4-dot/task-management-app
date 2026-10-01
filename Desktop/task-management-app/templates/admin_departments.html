@@ -1,22 +1,63 @@
 {% extends "base.html" %}
-{% block title %}จัดการแผนก{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-semibold mb-6">จัดการแผนก</h1>
+<div class="max-w-4xl mx-auto space-y-6">
+    <h1 class="text-2xl font-semibold text-gray-800">จัดการแผนก</h1>
 
-<form method="POST" class="bg-white p-4 rounded-lg shadow-sm flex gap-3 mb-6 max-w-md">
-  <input type="text" name="name" placeholder="ชื่อแผนกใหม่ เช่น การตลาด" required
-         class="flex-1 border rounded px-3 py-2">
-  <button class="bg-slate-900 text-white px-4 py-2 rounded hover:bg-slate-800">เพิ่มแผนก</button>
-</form>
+    <!-- ฟอร์มเพิ่มแผนก -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <h2 class="text-lg font-medium text-indigo-600 mb-4">➕ เพิ่มแผนกใหม่</h2>
+        <form method="POST" class="flex gap-3">
+            <input type="text" name="name" placeholder="ชื่อแผนกใหม่ เช่น การตลาด" required class="flex-1 p-2 border rounded-lg text-sm">
+            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition whitespace-nowrap">เพิ่มแผนก</button>
+        </form>
+    </div>
 
-<div class="bg-white rounded-lg shadow-sm divide-y">
-  {% for d in departments %}
-  <div class="px-4 py-3 flex justify-between items-center">
-    <span>{{ d.name }}</span>
-    <span class="text-sm text-slate-400">{{ d.employees|length }} คน</span>
-  </div>
-  {% else %}
-  <div class="px-4 py-3 text-slate-400 text-sm">ยังไม่มีแผนก</div>
-  {% endfor %}
+    <!-- รายชื่อแผนกแบบกดขยายดูพนักงานและย้ายได้ -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
+        <h2 class="text-lg font-medium text-gray-800">🏢 รายชื่อแผนกทั้งหมด (คลิกเพื่อดูรายชื่อพนักงาน)</h2>
+        <div class="space-y-3">
+            {% for dept in departments %}
+            <details class="border border-gray-200 rounded-lg p-4 group">
+                <summary class="flex justify-between items-center cursor-pointer font-medium text-gray-900 select-none">
+                    <span>📁 {{ dept.name }}</span>
+                    <span class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full">{{ dept.employees | length }} คน</span>
+                </summary>
+                
+                <div class="mt-4 pt-3 border-t border-gray-100 space-y-3">
+                    {% if dept.employees %}
+                        <div class="divide-y">
+                            {% for emp in dept.employees %}
+                            <div class="py-2 flex justify-between items-center text-sm">
+                                <div>
+                                    <span class="font-medium">{{ emp.full_name }}</span> 
+                                    <span class="text-gray-500 text-xs">({{ emp.username }})</span>
+                                </div>
+                                <!-- ฟอร์มย้ายแผนกพนักงานคนนี้ด่วน -->
+                                <form action="{{ url_for('move_employee', emp_id=emp.id) }}" method="POST" class="flex items-center gap-2">
+                                    <select name="department_id" onchange="this.form.submit()" class="text-xs p-1 border rounded bg-gray-50">
+                                        <option value="">-- ไม่มีแผนก --</option>
+                                        {% for d in departments %}
+                                        <option value="{{ d.id }}" {% if d.id == emp.department_id %}selected{% endif %}>ย้ายไป: {{ d.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-xs text-gray-400 py-1">ยังไม่มีพนักงานในแผนกนี้</p>
+                    {% endif %}
+
+                    <!-- ปุ่มลบแผนก -->
+                    <div class="pt-2 flex justify-end">
+                        <form action="{{ url_for('delete_department', dept_id=dept.id) }}" method="POST" onsubmit="return confirm('ยืนยันลบแผนกนี้?');">
+                            <button type="submit" class="text-red-600 hover:text-red-800 text-xs bg-red-50 px-3 py-1 rounded transition">ลบแผนกนี้</button>
+                        </form>
+                    </div>
+                </div>
+            </details>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 {% endblock %}

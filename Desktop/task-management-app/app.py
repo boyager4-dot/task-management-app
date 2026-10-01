@@ -271,13 +271,26 @@ def create_app():
             abort(403)
         dept = db.session.get(Department, dept_id)
         if dept:
-            # ป้องกันลบแผนกถ้ายังมีพนักงานอยู่
             if dept.employees:
                 flash("ไม่สามารถลบแผนกนี้ได้เนื่องจากยังมีพนักงานสังกัดอยู่", "error")
             else:
                 db.session.delete(dept)
                 db.session.commit()
                 flash("ลบแผนกเรียบร้อยแล้ว", "success")
+        return redirect(url_for("admin_departments"))
+
+    # ---------- Admin: move employee department ----------
+    @app.route("/admin/employees/<int:emp_id>/move", methods=["POST"])
+    @login_required
+    def move_employee(emp_id):
+        if not current_user.is_admin:
+            abort(403)
+        emp = db.session.get(Employee, emp_id)
+        if emp:
+            new_dept_id = request.form.get("department_id")
+            emp.department_id = int(new_dept_id) if new_dept_id else None
+            db.session.commit()
+            flash(f"ย้ายแผนกของ {emp.full_name} เรียบร้อยแล้ว", "success")
         return redirect(url_for("admin_departments"))
 
     # ---------- Admin: employees ----------
@@ -315,6 +328,22 @@ def create_app():
         return render_template(
             "admin_employees.html", employees=employees, departments=departments
         )
+
+    # ---------- Admin: reset employee password ----------
+    @app.route("/admin/employees/<int:emp_id>/reset-password", methods=["POST"])
+    @login_required
+    def reset_password(emp_id):
+        if not current_user.is_admin:
+            abort(403)
+        emp = db.session.get(Employee, emp_id)
+        new_pw = request.form.get("new_password", "").strip()
+        if emp and new_pw:
+            emp.set_password(new_pw)
+            db.session.commit()
+            flash(f"รีเซ็ตรหัสผ่านของ {emp.full_name} เป็น '{new_pw}' เรียบร้อยแล้ว", "success")
+        else:
+            flash("กรุณากรอกรหัสผ่านใหม่", "error")
+        return redirect(url_for("admin_employees"))
 
     # ---------- Admin: delete employee ----------
     @app.route("/admin/employees/<int:emp_id>/delete", methods=["POST"])

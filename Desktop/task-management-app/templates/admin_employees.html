@@ -17,7 +17,7 @@
                     <input type="text" name="username" required class="w-full mt-1 p-2 border rounded-lg text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">รหัสผ่าน *</label>
+                    <label class="block text-sm font-medium text-gray-700">รหัสผ่านเริ่มต้น *</label>
                     <input type="password" name="password" required class="w-full mt-1 p-2 border rounded-lg text-sm">
                 </div>
                 <div>
@@ -38,24 +38,30 @@
         </form>
     </div>
 
-    <!-- รายชื่อพนักงาน -->
+    <!-- รายชื่อพนักงาน (ลบคำว่า pyton ที่เคยตกค้างออกเรียบร้อย) -->
     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
         <h2 class="text-lg font-medium text-gray-800">📋 รายชื่อพนักงานทั้งหมด</h2>
         <div class="divide-y">
             {% for emp in employees %}
-            pyton
-            <div class="py-3 flex justify-between items-center text-sm">
+            <div class="py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 text-sm">
                 <div>
                     <span class="font-medium text-gray-900">{{ emp.full_name }}</span> 
                     <span class="text-gray-500">({{ emp.username }})</span>
-                    <span class="text-xs text-indigo-600 ml-2">แผนก: {{ emp.department.name if emp.department else 'ไม่มีแผนก' }}</span>
-                </div>
-                <div class="flex items-center gap-3">
+                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded ml-2">แผนก: {{ emp.department.name if emp.department else 'ไม่มีแผนก' }}</span>
                     {% if emp.is_admin %}
-                    <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Admin</span>
+                    <span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded ml-1">Admin</span>
                     {% endif %}
-                    
-                    <form action="{{ url_for('delete_employee', emp_id=emp.id) }}" method="POST" onsubmit="return confirm('คุณต้องการลบพนักงานคนนี้ใช่หรือไม่?');">
+                </div>
+
+                <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                    <!-- ฟอร์มรีเซ็ตรหัสผ่านด่วน -->
+                    <form action="{{ url_for('reset_password', emp_id=emp.id) }}" method="POST" class="flex items-center gap-1">
+                        <input type="text" name="new_password" placeholder="รหัสผ่านใหม่" required class="text-xs p-1 border rounded w-28">
+                        <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded text-xs transition">เปลี่ยนรหัส</button>
+                    </form>
+
+                    <!-- ปุ่มลบ -->
+                    <form action="{{ url_for('delete_employee', emp_id=emp.id) }}" method="POST" onsubmit="return confirm('ยืนยันลบพนักงานคนนี้?');">
                         <button type="submit" class="text-red-600 hover:text-red-800 text-xs bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded transition">ลบ</button>
                     </form>
                 </div>
