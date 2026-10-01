@@ -38,6 +38,27 @@ def create_app():
     def load_user(user_id):
         return db.session.get(Employee, int(user_id))
 
+    # สร้างฐานข้อมูลและบัญชี Admin เริ่มต้นอัตโนมัติ
+    with app.app_context():
+        db.create_all()
+        # ตรวจสอบว่ามีผู้ใช้อย่างน้อย 1 คนหรือยัง ถ้ายังให้สร้าง Admin เริ่มต้น
+        if not Employee.query.first():
+            admin_dept = Department.query.filter_by(name="Admin").first()
+            if not admin_dept:
+                admin_dept = Department(name="Admin")
+                db.session.add(admin_dept)
+                db.session.commit()
+            
+            admin_user = Employee(
+                full_name="ผู้ดูแลระบบ",
+                username="admin",
+                department_id=admin_dept.id,
+                is_admin=True
+            )
+            admin_user.set_password("1234")
+            db.session.add(admin_user)
+            db.session.commit()
+
     # ---------- Auth ----------
     @app.route("/login", methods=["GET", "POST"])
     def login():
@@ -287,6 +308,4 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
